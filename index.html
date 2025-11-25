@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GATE 2026 Master - Day & Night</title>
+    <title>GATE 2026 Master - Full Sync</title>
     
-    <!-- React & Tailwind -->
+    <!-- React & Tailwind Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -47,10 +47,10 @@
 
     <style>
         :root {
-            /* Default: Cyberpunk */
+            /* Default Theme: Cyberpunk */
             --bg-color: #050505;
             --text-color: #ffffff;
-            --sub-text: #9ca3af; /* Gray 400 */
+            --sub-text: #9ca3af;
             --glass-bg: rgba(20, 20, 30, 0.6);
             --glass-border: rgba(0, 243, 255, 0.2);
             --primary: #00f3ff;
@@ -63,7 +63,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Segoe UI', Roboto, sans-serif;
-            overflow: hidden;
+            overflow: hidden; /* App handles scrolling */
             transition: background-color 0.5s ease, color 0.5s ease;
         }
 
@@ -99,9 +99,6 @@
             gap: 8px;
             text-align: center;
         }
-        
-        /* Utility to help text contrast in light mode */
-        .text-sub { color: var(--sub-text); }
     </style>
 </head>
 <body>
@@ -111,7 +108,7 @@
         const { useState, useEffect } = React;
 
         // =========================================
-        // 📌 SCHEDULE DATA
+        // 📌 FULL SCHEDULE DATA (Nov 18 - Feb 13)
         // =========================================
         const RAW_SCHEDULE = [
             // PHASE 1
@@ -120,8 +117,8 @@
             { d: "2025-11-22", t: "2023 Set 1", p: 1 }, { d: "2025-11-23", t: "2023 Set 2", p: 1 },
             { d: "2025-11-24", t: "2022 Set 1 (Redo)", p: 1 }, { d: "2025-11-25", t: "2022 Set 2", p: 1 },
             { d: "2025-11-26", t: "2021 Set 1", p: 1 }, { d: "2025-11-27", t: "2021 Set 2", p: 1 },
-            { d: "2025-11-28", t: "Analysis + weak topics", p: 1 }, { d: "2025-11-29", t: "NAT practice 2021–25", p: 1 },
-            { d: "2025-11-30", t: "MCQ practice 2021–25", p: 1 }, { d: "2025-12-01", t: "2020 S1", p: 1 },
+            { d: "2025-11-28", t: "Analysis + Weak Topics", p: 1 }, { d: "2025-11-29", t: "NAT Practice 21-25", p: 1 },
+            { d: "2025-11-30", t: "MCQ Practice 21-25", p: 1 }, { d: "2025-12-01", t: "2020 S1", p: 1 },
             { d: "2025-12-02", t: "2020 S2", p: 1 }, { d: "2025-12-03", t: "2019 S1", p: 1 },
             { d: "2025-12-04", t: "2019 S2", p: 1 }, { d: "2025-12-05", t: "2018 S1", p: 1 },
             { d: "2025-12-06", t: "2018 S2", p: 1 }, { d: "2025-12-07", t: "Analysis", p: 1 },
@@ -136,11 +133,11 @@
             { d: "2025-12-21", t: "SOM + 20 PYQs", p: 2 }, { d: "2025-12-22", t: "Structural Analysis + 20 PYQs", p: 2 },
             { d: "2025-12-23", t: "RCC + 20 PYQs", p: 2 }, { d: "2025-12-24", t: "Soil Mechanics + 20 PYQs", p: 2 },
             { d: "2025-12-25", t: "Foundation + 15 PYQs", p: 2 }, { d: "2025-12-26", t: "Fluid Mechanics + 20 PYQs", p: 2 },
-            { d: "2025-12-27", t: "Hydrology + Irrigation", p: 2 }, { d: "2025-12-28", t: "Env – wastewater", p: 2 },
-            { d: "2025-12-29", t: "Env – water treatment", p: 2 }, { d: "2025-12-30", t: "Env – air + noise", p: 2 },
+            { d: "2025-12-27", t: "Hydrology + Irrigation", p: 2 }, { d: "2025-12-28", t: "Env – Wastewater", p: 2 },
+            { d: "2025-12-29", t: "Env – Water Treatment", p: 2 }, { d: "2025-12-30", t: "Env – Air + Noise", p: 2 },
             { d: "2025-12-31", t: "Transportation", p: 2 }, { d: "2026-01-01", t: "Surveying", p: 2 },
             { d: "2026-01-02", t: "Engineering Maths", p: 2 }, { d: "2026-01-03", t: "Aptitude", p: 2 },
-            // Reattempts
+            // Phase 2 Loop
             { d: "2026-01-04", t: "Reattempt PYQs (2025-24)", p: 2 }, { d: "2026-01-05", t: "Reattempt PYQs (2023-22)", p: 2 },
             { d: "2026-01-06", t: "Reattempt PYQs (2021-20)", p: 2 }, { d: "2026-01-07", t: "Reattempt PYQs (2019-18)", p: 2 },
             { d: "2026-01-08", t: "Reattempt PYQs (2017-16)", p: 2 }, { d: "2026-01-09", t: "Reattempt PYQs (2015-14)", p: 2 },
@@ -165,66 +162,42 @@
             { d: "2026-02-13", t: "Light revision day", p: 3 }
         ];
 
-        // --- THEME CONFIGURATION ---
+        // --- THEMES ---
         const THEMES = {
             light: {
-                id: 'light',
-                name: 'Minimal White',
+                id: 'light', name: 'Minimal White',
                 colors: {
-                    '--bg-color': '#f8fafc', // Slate 50
-                    '--text-color': '#0f172a', // Slate 900
-                    '--sub-text': '#64748b', // Slate 500
-                    '--glass-bg': 'rgba(255, 255, 255, 0.7)',
-                    '--glass-border': 'rgba(203, 213, 225, 0.6)', // Slate 300
-                    '--primary': '#2563eb', // Blue 600
-                    '--secondary': '#8b5cf6', // Violet 500
-                    '--grid-color': 'rgba(0, 0, 0, 0.05)',
-                    '--hover-bg': 'rgba(37, 99, 235, 0.08)' // Primary very light
+                    '--bg-color': '#f8fafc', '--text-color': '#0f172a', '--sub-text': '#64748b',
+                    '--glass-bg': 'rgba(255, 255, 255, 0.7)', '--glass-border': 'rgba(203, 213, 225, 0.6)',
+                    '--primary': '#2563eb', '--secondary': '#8b5cf6',
+                    '--grid-color': 'rgba(0, 0, 0, 0.05)', '--hover-bg': 'rgba(37, 99, 235, 0.08)'
                 }
             },
             cyberpunk: {
-                id: 'cyberpunk',
-                name: 'Cyberpunk',
+                id: 'cyberpunk', name: 'Cyberpunk',
                 colors: {
-                    '--bg-color': '#050505',
-                    '--text-color': '#ffffff',
-                    '--sub-text': '#9ca3af',
-                    '--glass-bg': 'rgba(20, 20, 30, 0.7)',
-                    '--glass-border': 'rgba(0, 243, 255, 0.2)',
-                    '--primary': '#00f3ff',
-                    '--secondary': '#bc13fe',
-                    '--grid-color': 'rgba(255, 255, 255, 0.03)',
-                    '--hover-bg': 'rgba(255, 255, 255, 0.05)'
+                    '--bg-color': '#050505', '--text-color': '#ffffff', '--sub-text': '#9ca3af',
+                    '--glass-bg': 'rgba(20, 20, 30, 0.7)', '--glass-border': 'rgba(0, 243, 255, 0.2)',
+                    '--primary': '#00f3ff', '--secondary': '#bc13fe',
+                    '--grid-color': 'rgba(255, 255, 255, 0.03)', '--hover-bg': 'rgba(255, 255, 255, 0.05)'
                 }
             },
             zen: {
-                id: 'zen',
-                name: 'Zen Garden',
+                id: 'zen', name: 'Zen Garden',
                 colors: {
-                    '--bg-color': '#0f1c15',
-                    '--text-color': '#f0fdf4',
-                    '--sub-text': '#86efac',
-                    '--glass-bg': 'rgba(10, 40, 20, 0.6)',
-                    '--glass-border': 'rgba(74, 222, 128, 0.2)',
-                    '--primary': '#4ade80',
-                    '--secondary': '#22c55e',
-                    '--grid-color': 'rgba(255, 255, 255, 0.03)',
-                    '--hover-bg': 'rgba(255, 255, 255, 0.05)'
+                    '--bg-color': '#0f1c15', '--text-color': '#f0fdf4', '--sub-text': '#86efac',
+                    '--glass-bg': 'rgba(10, 40, 20, 0.6)', '--glass-border': 'rgba(74, 222, 128, 0.2)',
+                    '--primary': '#4ade80', '--secondary': '#22c55e',
+                    '--grid-color': 'rgba(255, 255, 255, 0.03)', '--hover-bg': 'rgba(255, 255, 255, 0.05)'
                 }
             },
             royal: {
-                id: 'royal',
-                name: 'Royal Onyx',
+                id: 'royal', name: 'Royal Onyx',
                 colors: {
-                    '--bg-color': '#000000',
-                    '--text-color': '#ffffff',
-                    '--sub-text': '#d1d5db',
-                    '--glass-bg': 'rgba(20, 20, 20, 0.8)',
-                    '--glass-border': 'rgba(251, 191, 36, 0.2)',
-                    '--primary': '#fbbf24',
-                    '--secondary': '#d97706',
-                    '--grid-color': 'rgba(255, 255, 255, 0.03)',
-                    '--hover-bg': 'rgba(255, 255, 255, 0.05)'
+                    '--bg-color': '#000000', '--text-color': '#ffffff', '--sub-text': '#d1d5db',
+                    '--glass-bg': 'rgba(20, 20, 20, 0.8)', '--glass-border': 'rgba(251, 191, 36, 0.2)',
+                    '--primary': '#fbbf24', '--secondary': '#d97706',
+                    '--grid-color': 'rgba(255, 255, 255, 0.03)', '--hover-bg': 'rgba(255, 255, 255, 0.05)'
                 }
             }
         };
@@ -238,7 +211,6 @@
 
         const LiveTimer = () => {
             const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
-
             useEffect(() => {
                 const interval = setInterval(() => {
                     const now = new Date();
@@ -255,7 +227,6 @@
                 }, 1000);
                 return () => clearInterval(interval);
             }, []);
-
             return (
                 <div className="glass-morphism rounded-xl p-3 mb-6 animate-slide-up">
                     <div className="flex justify-between items-center text-center">
@@ -277,9 +248,7 @@
                 className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-300 cursor-pointer border border-glassBorder active:scale-95 ${task.done ? 'opacity-60' : 'glass-morphism'}`}
                 style={{ backgroundColor: task.done ? 'transparent' : '' }}
             >
-                {/* Custom Hover Effect using CSS Variable */}
                 <div className="absolute inset-0 transition-opacity opacity-0 group-hover:opacity-100" style={{ backgroundColor: 'var(--hover-bg)' }}></div>
-
                 <div className="flex items-center gap-4 relative z-10">
                     <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${task.done ? 'bg-primary border-primary' : 'border-gray-500 group-hover:border-primary'}`}>
                         {task.done && <Icon name="check" size={14} className="text-white animate-pop" />}
@@ -296,81 +265,7 @@
             </div>
         );
 
-        const CalendarWidget = ({ tasks, toggleTask }) => {
-            const [currDate, setCurrDate] = useState(new Date("2025-11-25"));
-            const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split('T')[0]);
-
-            const year = currDate.getFullYear();
-            const month = currDate.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDay = new Date(year, month, 1).getDay();
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            
-            const days = [];
-            for (let i = 0; i < firstDay; i++) days.push(null);
-            for (let i = 1; i <= daysInMonth; i++) days.push(i);
-
-            const getTaskStatus = (day) => {
-                if (!day) return null;
-                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const task = tasks.find(t => t.d === dStr);
-                const isPast = new Date(dStr) < new Date(new Date().toISOString().split('T')[0]);
-                if (!task) return 'none';
-                if (task.done) return 'done';
-                if (isPast) return 'missed';
-                return 'pending';
-            };
-
-            const handleDateClick = (day) => {
-                if (!day) return;
-                setSelectedDateStr(`${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-            };
-
-            const selectedTask = tasks.find(t => t.d === selectedDateStr);
-
-            return (
-                <div className="animate-slide-up pb-24 h-full flex flex-col">
-                    <h2 className="text-2xl font-bold mb-4 px-2 text-primary">Calendar</h2>
-                    
-                    <div className="glass-morphism rounded-2xl p-4 mb-4">
-                        <div className="flex justify-between items-center mb-4">
-                            <button onClick={() => setCurrDate(new Date(year, month - 1, 1))} className="p-2 hover:bg-primary/10 rounded-full text-primary"><Icon name="chevron-left" size={20}/></button>
-                            <span className="font-bold text-lg">{monthNames[month]} {year}</span>
-                            <button onClick={() => setCurrDate(new Date(year, month + 1, 1))} className="p-2 hover:bg-primary/10 rounded-full text-primary"><Icon name="chevron-right" size={20}/></button>
-                        </div>
-                        <div className="calendar-grid mb-2">
-                            {['S','M','T','W','T','F','S'].map(d => <span key={d} className="text-xs text-sub font-bold opacity-70">{d}</span>)}
-                        </div>
-                        <div className="calendar-grid">
-                            {days.map((day, idx) => {
-                                if (!day) return <div key={idx}></div>;
-                                const status = getTaskStatus(day);
-                                const isSelected = selectedDateStr === `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                                
-                                let bgClass = "bg-glass-border text-sub"; 
-                                if (status === 'done') bgClass = "bg-green-500 text-white font-bold shadow-md";
-                                else if (status === 'missed') bgClass = "bg-red-500 text-white font-bold shadow-md";
-                                else if (status === 'pending') bgClass = "bg-primary/20 text-primary border border-primary/30";
-
-                                return (
-                                    <button 
-                                        key={idx} onClick={() => handleDateClick(day)}
-                                        className={`h-9 w-9 rounded-full flex items-center justify-center text-sm transition-all relative ${bgClass} ${isSelected ? 'ring-2 ring-primary scale-110 z-10' : ''}`}
-                                    >
-                                        {day}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    
-                    <div className="flex-1">
-                        <h3 className="text-sm font-bold text-sub mb-2 px-2 uppercase tracking-wider">{new Date(selectedDateStr).toDateString()}</h3>
-                        {selectedTask ? <TaskCard task={selectedTask} onToggle={toggleTask} /> : <div className="glass-morphism p-6 rounded-xl text-center text-sub italic">No task scheduled.</div>}
-                    </div>
-                </div>
-            );
-        };
+        // --- TAB VIEWS ---
 
         const Dashboard = ({ tasks, toggleTask }) => {
             const completed = tasks.filter(t => t.done).length;
@@ -409,9 +304,99 @@
             );
         };
 
+        const CalendarWidget = ({ tasks, toggleTask }) => {
+            const [currDate, setCurrDate] = useState(new Date("2025-11-25")); // Default start date
+            const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split('T')[0]);
+
+            const year = currDate.getFullYear();
+            const month = currDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            const days = [];
+            for (let i = 0; i < firstDay; i++) days.push(null);
+            for (let i = 1; i <= daysInMonth; i++) days.push(i);
+
+            const getTaskStatus = (day) => {
+                if (!day) return null;
+                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const task = tasks.find(t => t.d === dStr);
+                const isPast = new Date(dStr) < new Date(new Date().toISOString().split('T')[0]);
+                if (!task) return 'none';
+                if (task.done) return 'done';
+                if (isPast) return 'missed';
+                return 'pending';
+            };
+
+            const selectedTask = tasks.find(t => t.d === selectedDateStr);
+
+            return (
+                <div className="animate-slide-up pb-24 h-full flex flex-col">
+                    <h2 className="text-2xl font-bold mb-4 px-2 text-primary">Calendar</h2>
+                    <div className="glass-morphism rounded-2xl p-4 mb-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <button onClick={() => setCurrDate(new Date(year, month - 1, 1))} className="p-2 hover:bg-primary/10 rounded-full text-primary"><Icon name="chevron-left" size={20}/></button>
+                            <span className="font-bold text-lg">{currDate.toLocaleString('default', { month: 'long' })} {year}</span>
+                            <button onClick={() => setCurrDate(new Date(year, month + 1, 1))} className="p-2 hover:bg-primary/10 rounded-full text-primary"><Icon name="chevron-right" size={20}/></button>
+                        </div>
+                        <div className="calendar-grid mb-2">{['S','M','T','W','T','F','S'].map(d=><span key={d} className="text-xs text-sub font-bold opacity-70">{d}</span>)}</div>
+                        <div className="calendar-grid">
+                            {days.map((day, idx) => {
+                                if(!day) return <div key={idx}></div>;
+                                const status = getTaskStatus(day);
+                                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                const isSelected = selectedDateStr === dStr;
+                                let bgClass = "bg-glass-border text-sub";
+                                if(status === 'done') bgClass = "bg-green-500 text-white font-bold shadow-md";
+                                else if(status === 'missed') bgClass = "bg-red-500 text-white font-bold shadow-md";
+                                else if(status === 'pending') bgClass = "bg-primary/20 text-primary border border-primary/30";
+                                return <button key={idx} onClick={() => setSelectedDateStr(dStr)} className={`h-9 w-9 rounded-full flex items-center justify-center text-sm transition-all relative ${bgClass} ${isSelected ? 'ring-2 ring-primary scale-110 z-10' : ''}`}>{day}</button>
+                            })}
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="text-sm font-bold text-sub mb-2 px-2 uppercase tracking-wider">{new Date(selectedDateStr).toDateString()}</h3>
+                        {selectedTask ? <TaskCard task={selectedTask} onToggle={toggleTask} /> : <div className="glass-morphism p-6 rounded-xl text-center text-sub italic">No task scheduled.</div>}
+                    </div>
+                </div>
+            );
+        };
+
+        const FullListView = ({ tasks, toggleTask }) => {
+            const [filter, setFilter] = useState('all');
+            const filteredTasks = tasks.filter(t => {
+                if(filter === 'done') return t.done;
+                if(filter === 'pending') return !t.done;
+                return true;
+            });
+            const phases = [ {id: 1, name: "Phase 1: PYQ Completion"}, {id: 2, name: "Phase 2: Revision"}, {id: 3, name: "Phase 3: Mock Tests"} ];
+
+            return (
+                <div className="pb-24 animate-slide-up">
+                    <h2 className="text-2xl font-bold mb-4 px-2 text-primary">All Tasks</h2>
+                    <div className="flex gap-2 mb-4 px-2 overflow-x-auto pb-2">
+                        {['all', 'pending', 'done'].map(f => (
+                            <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize border transition-all ${filter === f ? 'bg-primary text-white border-primary' : 'bg-glass-bg border-glassBorder text-sub'}`}>{f}</button>
+                        ))}
+                    </div>
+                    <div className="space-y-6">
+                        {phases.map(phase => {
+                            const phaseTasks = filteredTasks.filter(t => t.p === phase.id);
+                            if(phaseTasks.length === 0) return null;
+                            return (
+                                <div key={phase.id}>
+                                    <h3 className="text-sm font-bold text-sub mb-2 px-2 uppercase tracking-widest sticky top-0 bg-themeBg/90 backdrop-blur-sm py-2 z-10">{phase.name}</h3>
+                                    <div className="space-y-2">{phaseTasks.map(t => <TaskCard key={t.d} task={t} onToggle={toggleTask} />)}</div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
         const SettingsView = ({ currentTheme, setTheme, resetData }) => (
             <div className="pb-24 animate-slide-up">
-                <h2 className="text-2xl font-bold mb-6 px-2 text-primary">Theme & Data</h2>
+                <h2 className="text-2xl font-bold mb-6 px-2 text-primary">Settings</h2>
                 <div className="grid grid-cols-2 gap-4 px-1">
                     {Object.values(THEMES).map(theme => (
                         <div key={theme.id} onClick={() => setTheme(theme.id)} className={`glass-morphism rounded-xl p-4 cursor-pointer border-2 transition-all ${currentTheme === theme.id ? 'border-primary scale-[1.02]' : 'border-transparent opacity-80 hover:opacity-100'}`}>
@@ -422,11 +407,13 @@
                 </div>
                 <div className="mt-10 px-2">
                     <button onClick={resetData} className="w-full py-3 rounded-xl border border-red-500/30 text-red-500 glass-morphism hover:bg-red-500/10 flex items-center justify-center gap-2">
-                        <Icon name="trash-2" size={18} /> Reset All Progress
+                        <Icon name="trash-2" size={18} /> Reset Data
                     </button>
                 </div>
             </div>
         );
+
+        // --- ROOT APP ---
 
         const App = () => {
             const [tab, setTab] = useState('home');
@@ -435,8 +422,8 @@
             const [loaded, setLoaded] = useState(false);
 
             useEffect(() => {
-                const savedTasks = localStorage.getItem('gate_final_tasks');
-                const savedTheme = localStorage.getItem('gate_final_theme');
+                const savedTasks = localStorage.getItem('gate_sync_tasks_v2');
+                const savedTheme = localStorage.getItem('gate_sync_theme_v2');
                 if (savedTasks) setTasks(JSON.parse(savedTasks));
                 else setTasks(RAW_SCHEDULE.map(t => ({...t, done: false})));
                 if (savedTheme) setTheme(savedTheme);
@@ -445,8 +432,8 @@
 
             useEffect(() => {
                 if (loaded) {
-                    localStorage.setItem('gate_final_tasks', JSON.stringify(tasks));
-                    localStorage.setItem('gate_final_theme', theme);
+                    localStorage.setItem('gate_sync_tasks_v2', JSON.stringify(tasks));
+                    localStorage.setItem('gate_sync_theme_v2', theme);
                 }
                 const t = THEMES[theme];
                 Object.entries(t.colors).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
@@ -472,11 +459,13 @@
                     <div className="flex-1 overflow-y-auto scroll-hidden p-5">
                         {tab === 'home' && <Dashboard tasks={tasks} toggleTask={toggleTask} />}
                         {tab === 'calendar' && <CalendarWidget tasks={tasks} toggleTask={toggleTask} />}
+                        {tab === 'list' && <FullListView tasks={tasks} toggleTask={toggleTask} />}
                         {tab === 'settings' && <SettingsView currentTheme={theme} setTheme={setTheme} resetData={resetData} />}
                     </div>
                     <div className="absolute bottom-6 left-6 right-6 h-16 glass-morphism rounded-2xl flex items-center justify-around z-50">
                         <button onClick={() => setTab('home')} className={`p-2 rounded-xl transition-all ${tab === 'home' ? 'bg-primary/20 text-primary scale-110' : 'text-sub'}`}><Icon name="layout-dashboard" /></button>
                         <button onClick={() => setTab('calendar')} className={`p-2 rounded-xl transition-all ${tab === 'calendar' ? 'bg-primary/20 text-primary scale-110' : 'text-sub'}`}><Icon name="calendar" /></button>
+                        <button onClick={() => setTab('list')} className={`p-2 rounded-xl transition-all ${tab === 'list' ? 'bg-primary/20 text-primary scale-110' : 'text-sub'}`}><Icon name="list" /></button>
                         <button onClick={() => setTab('settings')} className={`p-2 rounded-xl transition-all ${tab === 'settings' ? 'bg-primary/20 text-primary scale-110' : 'text-sub'}`}><Icon name="settings" /></button>
                     </div>
                 </div>
