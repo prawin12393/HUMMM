@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GATE CE 2026 Master Tracker</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#10b981',
+                        phase1: '#3b82f6',
+                        phase2: '#8b5cf6',
+                        phase3: '#f59e0b',
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type="checkbox"] { accent-color: #2563eb; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 transition-colors duration-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // ==========================================
+        // DATA & CONSTANTS
+        // ==========================================
+        
+        const EXAM_DATE = "2026-02-14";
+        const TODAY_SIMULATION = new Date().toISOString().split('T')[0]; // Current real date
+
+        const RAW_SCHEDULE = [
+            // PHASE 1
+            { d: "2025-11-18", t: "2025 Set 1", p: 1 }, { d: "2025-11-19", t: "2025 Set 2", p: 1 },
+            { d: "2025-11-20", t: "2024 Set 1", p: 1 }, { d: "2025-11-21", t: "2024 Set 2", p: 1 },
+            { d: "2025-11-22", t: "2023 Set 1", p: 1 }, { d: "2025-11-23", t: "2023 Set 2", p: 1 },
+            { d: "2025-11-24", t: "2022 Set 1 (Redo)", p: 1 }, { d: "2025-11-25", t: "2022 Set 2", p: 1 },
+            { d: "2025-11-26", t: "2021 Set 1", p: 1 }, { d: "2025-11-27", t: "2021 Set 2", p: 1 },
+            { d: "2025-11-28", t: "Analysis + Weak Topics", p: 1 }, { d: "2025-11-29", t: "NAT Practice 21-25", p: 1 },
+            { d: "2025-11-30", t: "MCQ Practice 21-25", p: 1 }, { d: "2025-12-01", t: "2020 S1", p: 1 },
+            { d: "2025-12-02", t: "2020 S2", p: 1 }, { d: "2025-12-03", t: "2019 S1", p: 1 },
+            { d: "2025-12-04", t: "2019 S2", p: 1 }, { d: "2025-12-05", t: "2018 S1", p: 1 },
+            { d: "2025-12-06", t: "2018 S2", p: 1 }, { d: "2025-12-07", t: "Analysis", p: 1 },
+            { d: "2025-12-08", t: "2017 S1", p: 1 }, { d: "2025-12-09", t: "2017 S2", p: 1 },
+            { d: "2025-12-10", t: "2016 S1", p: 1 }, { d: "2025-12-11", t: "2016 S2", p: 1 },
+            { d: "2025-12-12", t: "2015 S1", p: 1 }, { d: "2025-12-13", t: "2015 S2", p: 1 },
+            { d: "2025-12-14", t: "Review", p: 1 }, { d: "2025-12-15", t: "2014 S1", p: 1 },
+            { d: "2025-12-16", t: "2014 S2", p: 1 }, { d: "2025-12-17", t: "2013", p: 1 },
+            { d: "2025-12-18", t: "2012", p: 1 }, { d: "2025-12-19", t: "2011", p: 1 },
+            { d: "2025-12-20", t: "Grand Revision", p: 1 },
+            // PHASE 2
+            { d: "2025-12-21", t: "SOM + 20 PYQs", p: 2 }, { d: "2025-12-22", t: "Structural Analysis + 20 PYQs", p: 2 },
+            { d: "2025-12-23", t: "RCC + 20 PYQs", p: 2 }, { d: "2025-12-24", t: "Soil Mechanics + 20 PYQs", p: 2 },
+            { d: "2025-12-25", t: "Foundation + 15 PYQs", p: 2 }, { d: "2025-12-26", t: "FM + 20 PYQs", p: 2 },
+            { d: "2025-12-27", t: "Hydrology + Irrigation", p: 2 }, { d: "2025-12-28", t: "Env - Wastewater", p: 2 },
+            { d: "2025-12-29", t: "Env - Water Treatment", p: 2 }, { d: "2025-12-30", t: "Env - Air + Noise", p: 2 },
+            { d: "2025-12-31", t: "Transportation", p: 2 }, { d: "2026-01-01", t: "Surveying", p: 2 },
+            { d: "2026-01-02", t: "Engineering Maths", p: 2 }, { d: "2026-01-03", t: "Aptitude", p: 2 },
+            // Gap filler for Phase 2 PYQ reattempts
+             { d: "2026-01-04", t: "Reattempt PYQs (2025-23)", p: 2 }, { d: "2026-01-05", t: "Reattempt PYQs (2022-20)", p: 2 },
+             { d: "2026-01-06", t: "Reattempt PYQs (2019-17)", p: 2 }, { d: "2026-01-07", t: "Reattempt PYQs (2016-14)", p: 2 },
+             { d: "2026-01-08", t: "Weak Subject Focus 1", p: 2 }, { d: "2026-01-09", t: "Weak Subject Focus 2", p: 2 },
+             { d: "2026-01-10", t: "Full Revision SOM/SA", p: 2 }, { d: "2026-01-11", t: "Full Revision Soil/Env", p: 2 },
+             { d: "2026-01-12", t: "Full Revision Transpo/Survey", p: 2 }, { d: "2026-01-13", t: "Maths Revision", p: 2 },
+             { d: "2026-01-14", t: "Aptitude Revision", p: 2 }, { d: "2026-01-15", t: "Rest & Prep for Mocks", p: 2 },
+            // PHASE 3
+            { d: "2026-01-16", t: "Mock 1", p: 3 }, { d: "2026-01-17", t: "Analysis Mock 1", p: 3 },
+            { d: "2026-01-18", t: "Mock 2", p: 3 }, { d: "2026-01-19", t: "Analysis Mock 2", p: 3 },
+            { d: "2026-01-20", t: "Mock 3", p: 3 }, { d: "2026-01-21", t: "Analysis Mock 3", p: 3 },
+            { d: "2026-01-22", t: "Weak Topics", p: 3 }, { d: "2026-01-23", t: "Mock 4", p: 3 },
+            { d: "2026-01-24", t: "Analysis Mock 4", p: 3 }, { d: "2026-01-25", t: "Mock 5", p: 3 },
+            { d: "2026-01-26", t: "Analysis Mock 5", p: 3 }, { d: "2026-01-27", t: "Mock 6", p: 3 },
+            { d: "2026-01-28", t: "Analysis Mock 6", p: 3 }, { d: "2026-01-29", t: "Formula Revision", p: 3 },
+            { d: "2026-01-30", t: "Mock 7", p: 3 }, { d: "2026-01-31", t: "Analysis Mock 7", p: 3 },
+            { d: "2026-02-01", t: "Mock 8", p: 3 }, { d: "2026-02-02", t: "Analysis Mock 8", p: 3 },
+            { d: "2026-02-03", t: "Mock 9", p: 3 }, { d: "2026-02-04", t: "Analysis Mock 9", p: 3 },
+            { d: "2026-02-05", t: "Error Log Practice", p: 3 }, { d: "2026-02-06", t: "Mock 10", p: 3 },
+            { d: "2026-02-07", t: "Light Analysis", p: 3 }, { d: "2026-02-08", t: "Mock 11", p: 3 },
+            { d: "2026-02-09", t: "Light Analysis", p: 3 }, { d: "2026-02-10", t: "Mock 12", p: 3 },
+            { d: "2026-02-11", t: "Light Analysis", p: 3 }, { d: "2026-02-12", t: "Formula + NAT Rev", p: 3 },
+            { d: "2026-02-13", t: "Light Revision Day", p: 3 }
+        ];
+
+        const SUBJECTS = ["SOM", "SA", "RCC", "Steel", "Geotech", "Foundation", "FM", "Hydrology", "Irrigation", "Env", "Transportation", "Surveying", "Maths", "Aptitude"];
+
+        // ==========================================
+        // COMPONENTS
+        // ==========================================
+
+        // --- ICON COMPONENT HELPER ---
+        const Icon = ({ name, size = 20, className = "" }) => {
+            React.useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        // --- NAV BAR ---
+        const NavBar = ({ activeTab, setActiveTab }) => {
+            const tabs = [
+                { id: 'dashboard', icon: 'layout-dashboard', label: 'Home' },
+                { id: 'calendar', icon: 'calendar', label: 'Plan' },
+                { id: 'formulas', icon: 'book', label: 'Notes' },
+                { id: 'errors', icon: 'alert-triangle', label: 'Errors' },
+                { id: 'settings', icon: 'settings', label: 'Settings' },
+            ];
+
+            return (
+                <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-darkCard border-t dark:border-gray-700 flex justify-around py-3 pb-safe z-50 shadow-lg">
+                    {tabs.map(tab => (
+                        <button 
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex flex-col items-center space-y-1 ${activeTab === tab.id ? 'text-primary' : 'text-gray-400'}`}
+                        >
+                            <Icon name={tab.icon} />
+                            <span className="text-[10px]">{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+            );
+        };
+
+        // --- DASHBOARD ---
+        const Dashboard = ({ tasks, toggleTask, username }) => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayTask = tasks.find(t => t.d === todayStr) || { t: "No Task Scheduled", done: false, p: 1 };
+            
+            const daysLeft = Math.ceil((new Date(EXAM_DATE) - new Date()) / (1000 * 60 * 60 * 24));
+            
+            // Progress Logic
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(t => t.done).length;
+            const percentage = Math.round((completedTasks / totalTasks) * 100);
+
+            // Streak Logic (simplified)
+            // In a real app, calculate consecutive days. Here we simulate random streak for demo or use logic.
+            const streak = useMemo(() => {
+                let s = 0;
+                // Simple logic: count backwards from yesterday how many consecutive days are done
+                // For this demo, we'll just show tasks done today as a 'streak' starter
+                return completedTasks > 0 ? Math.floor(completedTasks / 2) : 0; 
+            }, [completedTasks]);
+
+            return (
+                <div className="p-4 pb-24 space-y-6">
+                    <header className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-2xl font-bold dark:text-white">Hi, {username} 👋</h1>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Let's crack GATE 2026!</p>
+                        </div>
+                        <div className="bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-200 px-3 py-1 rounded-full text-xs font-bold">
+                            {daysLeft} Days Left
+                        </div>
+                    </header>
+
+                    {/* Progress Card */}
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white shadow-lg">
+                        <div className="flex justify-between items-end mb-2">
+                            <div>
+                                <p className="text-blue-100 text-sm">Overall Progress</p>
+                                <h2 className="text-3xl font-bold">{percentage}%</h2>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-blue-100 text-sm">Streak</p>
+                                <div className="flex items-center gap-1 font-bold">
+                                    <Icon name="flame" size={16} /> {streak} Days
+                                </div>
+                            </div>
+                        </div>
+                        <div className="w-full bg-blue-900/30 rounded-full h-2 mt-2">
+                            <div className="bg-white h-2 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                        </div>
+                    </div>
+
+                    {/* Today's Task */}
+                    <div>
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Today's Mission</h3>
+                        <div className="bg-white dark:bg-darkCard p-4 rounded-xl shadow-sm border dark:border-gray-700 flex items-center justify-between">
+                            <div>
+                                <span className={`text-xs px-2 py-0.5 rounded ${todayTask.p === 1 ? 'bg-blue-100 text-blue-700' : todayTask.p === 2 ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}`}>
+                                    Phase {todayTask.p}
+                                </span>
+                                <h4 className={`mt-1 font-medium ${todayTask.done ? 'line-through text-gray-400' : 'dark:text-white'}`}>
+                                    {todayTask.t}
+                                </h4>
+                                <p className="text-xs text-gray-400">{todayStr}</p>
+                            </div>
+                            <button 
+                                onClick={() => toggleTask(todayTask.d)}
+                                className={`h-10 w-10 rounded-full flex items-center justify-center transition-all ${todayTask.done ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'}`}
+                            >
+                                <Icon name="check" size={20} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Phase Stats */}
+                    <div className="grid grid-cols-3 gap-3">
+                        {[1,2,3].map(phase => {
+                            const pTasks = tasks.filter(t => t.p === phase);
+                            const pDone = pTasks.filter(t => t.done).length;
+                            const pPerc = Math.round((pDone / pTasks.length) * 100) || 0;
+                            const color = phase === 1 ? 'text-blue-500' : phase === 2 ? 'text-purple-500' : 'text-orange-500';
+                            
+                            return (
+                                <div key={phase} className="bg-white dark:bg-darkCard p-3 rounded-xl shadow-sm border dark:border-gray-700 text-center">
+                                    <p className="text-xs text-gray-400">Phase {phase}</p>
+                                    <h3 className={`font-bold text-lg ${color}`}>{pPerc}%</h3>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CALENDAR ---
+        const CalendarView = ({ tasks, toggleTask }) => {
+            const [filter, setFilter] = useState('all'); // all, pending, done
+
+            const filteredTasks = tasks.filter(t => {
+                if (filter === 'done') return t.done;
+                if (filter === 'pending') return !t.done;
+                return true;
+            });
+
+            return (
+                <div className="p-4 pb-24 h-full overflow-y-auto">
+                    <h2 className="text-xl font-bold mb-4 dark:text-white">Schedule</h2>
+                    
+                    {/* Filters */}
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                        {['all', 'pending', 'done'].map(f => (
+                            <button 
+                                key={f}
+                                onClick={() => setFilter(f)}
+                                className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize whitespace-nowrap ${filter === f ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-3">
+                        {filteredTasks.map((task, idx) => (
+                            <div key={idx} onClick={() => toggleTask(task.d)} className="bg-white dark:bg-darkCard p-3 rounded-lg border dark:border-gray-700 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform">
+                                <div className={`w-1 h-10 rounded-full ${task.p === 1 ? 'bg-blue-500' : task.p === 2 ? 'bg-purple-500' : 'bg-orange-500'}`}></div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-gray-400">{task.d}</span>
+                                        <span className="text-[10px] bg-gray-100 dark:bg-gray-700 px-1.5 rounded text-gray-500 dark:text-gray-300">P{task.p}</span>
+                                    </div>
+                                    <h4 className={`font-medium text-sm ${task.done ? 'line-through text-gray-400' : 'dark:text-gray-200'}`}>{task.t}</h4>
+                                </div>
+                                <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${task.done ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>
+                                    {task.done && <Icon name="check" size={14} />}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- ERROR LOG ---
+        const ErrorLog = ({ errors, addError, deleteError }) => {
+            const [isAdding, setIsAdding] = useState(false);
+            const [newError, setNewError] = useState({ subject: SUBJECTS[0], type: 'Concept', desc: '' });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                addError({ ...newError, id: Date.now(), date: new Date().toISOString().split('T')[0] });
+                setIsAdding(false);
+                setNewError({ subject: SUBJECTS[0], type: 'Concept', desc: '' });
+            };
+
+            return (
+                <div className="p-4 pb-24">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold dark:text-white">Error Log</h2>
+                        <button onClick={() => setIsAdding(!isAdding)} className="bg-primary text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-1">
+                            <Icon name="plus" size={16} /> Add New
+                        </button>
+                    </div>
+
+                    {isAdding && (
+                        <form onSubmit={handleSubmit} className="bg-white dark:bg-darkCard p-4 rounded-xl shadow-lg mb-6 border dark:border-gray-700 animate-fade-in">
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <select 
+                                    className="p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    value={newError.subject}
+                                    onChange={e => setNewError({...newError, subject: e.target.value})}
+                                >
+                                    {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                                <select 
+                                    className="p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    value={newError.type}
+                                    onChange={e => setNewError({...newError, type: e.target.value})}
+                                >
+                                    {['Concept', 'Formula', 'Calculation', 'Silly'].map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                            </div>
+                            <textarea 
+                                placeholder="Describe your mistake..."
+                                className="w-full p-2 border rounded mb-3 text-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                rows="3"
+                                required
+                                value={newError.desc}
+                                onChange={e => setNewError({...newError, desc: e.target.value})}
+                            ></textarea>
+                            <div className="flex gap-2">
+                                <button type="submit" className="flex-1 bg-primary text-white py-2 rounded">Save</button>
+                                <button type="button" onClick={() => setIsAdding(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded">Cancel</button>
+                            </div>
+                        </form>
+                    )}
+
+                    <div className="space-y-3">
+                        {errors.length === 0 ? (
+                            <div className="text-center text-gray-400 mt-10">
+                                <Icon name="check-circle" size={48} className="mx-auto mb-2 opacity-50"/>
+                                <p>No errors logged yet. Good job!</p>
+                            </div>
+                        ) : (
+                            errors.map(err => (
+                                <div key={err.id} className="bg-white dark:bg-darkCard p-3 rounded-lg border-l-4 border-l-red-500 shadow-sm relative">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{err.subject} • {err.type}</span>
+                                        <span className="text-[10px] text-gray-400">{err.date}</span>
+                                    </div>
+                                    <p className="mt-1 text-sm dark:text-gray-200">{err.desc}</p>
+                                    <button onClick={() => deleteError(err.id)} className="absolute bottom-2 right-2 text-red-400 hover:text-red-600">
+                                        <Icon name="trash-2" size={14} />
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- FORMULAS ---
+        const FormulaBook = ({ formulas, addFormula }) => {
+            const [expandedSubject, setExpandedSubject] = useState(null);
+            
+            // Simplified for demo: Just showing subjects. 
+            // In a full app, this would perform CRUD like the Error Log.
+            
+            return (
+                <div className="p-4 pb-24">
+                    <h2 className="text-xl font-bold mb-4 dark:text-white">Formula Book</h2>
+                    <div className="space-y-2">
+                        {SUBJECTS.map(sub => (
+                            <div key={sub} className="bg-white dark:bg-darkCard rounded-lg border dark:border-gray-700 overflow-hidden">
+                                <button 
+                                    onClick={() => setExpandedSubject(expandedSubject === sub ? null : sub)}
+                                    className="w-full p-3 flex justify-between items-center bg-gray-50 dark:bg-gray-800"
+                                >
+                                    <span className="font-medium dark:text-white">{sub}</span>
+                                    <Icon name={expandedSubject === sub ? "chevron-up" : "chevron-down"} size={16} />
+                                </button>
+                                {expandedSubject === sub && (
+                                    <div className="p-4 text-sm text-gray-500 dark:text-gray-400">
+                                        <p className="italic">Click to add formula (Feature pending in demo)</p>
+                                        {/* Formula list would map here */}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )
+        }
+
+        // --- SETTINGS ---
+        const Settings = ({ toggleTheme, isDark, resetData, username, setUsername }) => {
+            return (
+                <div className="p-4 pb-24">
+                    <h2 className="text-xl font-bold mb-6 dark:text-white">Settings</h2>
+                    
+                    <div className="bg-white dark:bg-darkCard rounded-xl overflow-hidden divide-y dark:divide-gray-700 border dark:border-gray-700">
+                        <div className="p-4 flex items-center justify-between">
+                            <span className="dark:text-white">Dark Mode</span>
+                            <button 
+                                onClick={toggleTheme}
+                                className={`w-12 h-6 rounded-full p-1 transition-colors ${isDark ? 'bg-primary' : 'bg-gray-300'}`}
+                            >
+                                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isDark ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                            </button>
+                        </div>
+                        
+                        <div className="p-4">
+                            <label className="block text-sm text-gray-500 mb-1">Your Name</label>
+                            <input 
+                                type="text" 
+                                value={username} 
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full border rounded p-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                            />
+                        </div>
+
+                        <div className="p-4">
+                            <button onClick={resetData} className="text-red-500 text-sm font-medium flex items-center gap-2">
+                                <Icon name="refresh-cw" size={16} /> Reset All Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p className="text-center text-xs text-gray-400 mt-8">
+                        GATE CE 2026 Tracker v1.0<br/>
+                        Built for Civil Engineers
+                    </p>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // MAIN APP CONTAINER
+        // ==========================================
+        
+        const App = () => {
+            // State
+            const [loading, setLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [tasks, setTasks] = useState([]);
+            const [errors, setErrors] = useState([]);
+            const [formulas, setFormulas] = useState([]);
+            const [isDark, setIsDark] = useState(false);
+            const [username, setUsername] = useState("Praveen");
+
+            // Initialization (Load from LocalStorage or use Defaults)
+            useEffect(() => {
+                const savedTasks = localStorage.getItem('gate_tasks');
+                const savedErrors = localStorage.getItem('gate_errors');
+                const savedTheme = localStorage.getItem('gate_theme');
+                const savedUser = localStorage.getItem('gate_user');
+
+                if (savedTasks) setTasks(JSON.parse(savedTasks));
+                else setTasks(RAW_SCHEDULE.map(t => ({ ...t, done: false })));
+
+                if (savedErrors) setErrors(JSON.parse(savedErrors));
+                if (savedUser) setUsername(savedUser);
+                if (savedTheme === 'dark') {
+                    setIsDark(true);
+                    document.documentElement.classList.add('dark');
+                    document.body.style.backgroundColor = '#0f172a';
+                }
+
+                setLoading(false);
+            }, []);
+
+            // Effects for Saving
+            useEffect(() => {
+                if(!loading) localStorage.setItem('gate_tasks', JSON.stringify(tasks));
+            }, [tasks, loading]);
+
+            useEffect(() => {
+                if(!loading) localStorage.setItem('gate_errors', JSON.stringify(errors));
+            }, [errors, loading]);
+
+            useEffect(() => {
+                localStorage.setItem('gate_user', username);
+            }, [username]);
+
+            const toggleTask = (dateStr) => {
+                setTasks(prev => prev.map(t => t.d === dateStr ? { ...t, done: !t.done } : t));
+            };
+
+            const toggleTheme = () => {
+                if (isDark) {
+                    document.documentElement.classList.remove('dark');
+                    document.body.style.backgroundColor = '#f9fafb';
+                    localStorage.setItem('gate_theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.body.style.backgroundColor = '#0f172a';
+                    localStorage.setItem('gate_theme', 'dark');
+                }
+                setIsDark(!isDark);
+            };
+
+            const resetData = () => {
+                if(confirm("Are you sure? This will delete all progress.")) {
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            };
+
+            const addError = (err) => setErrors([err, ...errors]);
+            const deleteError = (id) => setErrors(errors.filter(e => e.id !== id));
+
+            if (loading) return <div className="flex h-screen justify-center items-center">Loading...</div>;
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen relative bg-gray-50 dark:bg-darkBg transition-colors duration-200 shadow-2xl">
+                    {activeTab === 'dashboard' && <Dashboard tasks={tasks} toggleTask={toggleTask} username={username} />}
+                    {activeTab === 'calendar' && <CalendarView tasks={tasks} toggleTask={toggleTask} />}
+                    {activeTab === 'errors' && <ErrorLog errors={errors} addError={addError} deleteError={deleteError} />}
+                    {activeTab === 'formulas' && <FormulaBook formulas={formulas} />}
+                    {activeTab === 'settings' && <Settings toggleTheme={toggleTheme} isDark={isDark} resetData={resetData} username={username} setUsername={setUsername} />}
+                    
+                    <NavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
