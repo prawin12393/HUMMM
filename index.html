@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GATE 2026 Master</title>
+    <title>GATE 2026 Master - Calendar</title>
     
-    <!-- Libraries -->
+    <!-- React & Tailwind -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -13,34 +13,31 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        glass: "rgba(255, 255, 255, 0.08)",
-                        glassBorder: "rgba(255, 255, 255, 0.1)",
-                        neonBlue: "#00f3ff",
-                        neonPurple: "#bc13fe",
+                        themeBg: 'var(--bg-color)',
+                        glass: 'var(--glass-bg)',
+                        glassBorder: 'var(--glass-border)',
+                        primary: 'var(--primary)',
+                        secondary: 'var(--secondary)',
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
                         'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'pulse-slow': 'pulse 3s infinite',
                     },
                     keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
-                        },
                         slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         },
                         pop: {
-                            '0%': { transform: 'scale(0.9)' },
-                            '50%': { transform: 'scale(1.05)' },
+                            '0%': { transform: 'scale(0.8)' },
+                            '50%': { transform: 'scale(1.1)' },
                             '100%': { transform: 'scale(1)' },
                         }
                     }
@@ -50,105 +47,124 @@
     </script>
 
     <style>
-        body {
-            background-color: #050505;
-            color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; /* Prevent body scroll, handle in app */
+        :root {
+            --bg-color: #050505;
+            --glass-bg: rgba(20, 20, 30, 0.6);
+            --glass-border: rgba(0, 243, 255, 0.2);
+            --primary: #00f3ff;
+            --secondary: #bc13fe;
         }
 
-        /* Animated Grid Background */
+        body {
+            background-color: var(--bg-color);
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        .glass-morphism {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s ease;
+        }
+
+        /* Animated Backgrounds */
         .bg-grid {
-            position: fixed;
-            top: 0; left: 0; width: 200vw; height: 200vh;
-            background-image: 
-                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            position: fixed; top: 0; left: 0; width: 200vw; height: 200vh;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
             transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
             animation: gridMove 20s linear infinite;
-            z-index: -2;
+            z-index: -2; opacity: 0.5; pointer-events: none;
         }
-
+        
         @keyframes gridMove {
             0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
             100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
         }
 
-        /* Ambient Glows */
-        .glow-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.4;
-        }
-
         .scroll-hidden::-webkit-scrollbar { display: none; }
         
-        .glass-morphism {
-            background: rgba(20, 20, 30, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        .check-box-gradient {
-            background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
+        /* Calendar Specifics */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-
-    <div class="bg-grid"></div>
-    <div class="glow-orb" style="top: -10%; left: -10%; width: 400px; height: 400px; background: #00f3ff;"></div>
-    <div class="glow-orb" style="bottom: -10%; right: -10%; width: 300px; height: 300px; background: #bc13fe;"></div>
-
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        
-        // --- DATA ---
-        // Generating the specific schedule for demo
-        const generateSchedule = () => {
-            const tasks = [];
-            const phases = [
-                { end: '2025-12-20', p: 1, name: "Phase 1: PYQ Mastery" },
-                { end: '2026-01-15', p: 2, name: "Phase 2: Subject Rev" },
-                { end: '2026-02-13', p: 3, name: "Phase 3: Mock War" }
-            ];
-            
-            // Simplified generator for the demo (Using the specific dates from your prompt would make code too long, 
-            // so I'm using a smart generator that matches your logic)
-            let curr = new Date("2025-11-18");
-            const end = new Date("2026-02-13");
-            let index = 0;
-            
-            const p1Tasks = ["2025 Set 1", "2025 Set 2", "2024 Set 1", "2024 Set 2", "2023 Set 1", "2023 Set 2", "2022 Set 1", "2022 Set 2", "2021 Set 1", "2021 Set 2", "Analysis", "NAT Practice", "MCQ Practice", "2020 S1", "2020 S2", "2019 S1", "2019 S2", "2018 S1", "2018 S2", "Analysis", "2017 S1", "2017 S2", "2016 S1", "2016 S2", "2015 S1", "2015 S2", "Review", "2014 S1", "2014 S2", "2013", "2012", "2011", "Grand Revision"];
-            
-            while (curr <= end) {
-                const dStr = curr.toISOString().split('T')[0];
-                let t = "Revision & Practice";
-                let p = 3;
+        const { useState, useEffect, useMemo } = React;
 
-                if (curr < new Date("2025-12-21")) {
-                    p = 1;
-                    t = p1Tasks[index] || "PYQ Practice";
-                } else if (curr < new Date("2026-01-16")) {
-                    p = 2;
-                    t = "Subject Revision + PYQ";
-                } else {
-                    p = 3;
-                    t = index % 2 === 0 ? `Mock Test ${Math.ceil((index-40)/2)}` : "Test Analysis";
-                }
+        // =========================================
+        // 📌 SCHEDULE DATA
+        // =========================================
+        const RAW_SCHEDULE = [
+            // PHASE 1
+            { d: "2025-11-18", t: "2025 Set 1", p: 1 }, { d: "2025-11-19", t: "2025 Set 2", p: 1 },
+            { d: "2025-11-20", t: "2024 Set 1", p: 1 }, { d: "2025-11-21", t: "2024 Set 2", p: 1 },
+            { d: "2025-11-22", t: "2023 Set 1", p: 1 }, { d: "2025-11-23", t: "2023 Set 2", p: 1 },
+            { d: "2025-11-24", t: "2022 Set 1 (Redo)", p: 1 }, { d: "2025-11-25", t: "2022 Set 2", p: 1 },
+            { d: "2025-11-26", t: "2021 Set 1", p: 1 }, { d: "2025-11-27", t: "2021 Set 2", p: 1 },
+            { d: "2025-11-28", t: "Analysis + weak topics", p: 1 }, { d: "2025-11-29", t: "NAT practice 2021–25", p: 1 },
+            { d: "2025-11-30", t: "MCQ practice 2021–25", p: 1 }, { d: "2025-12-01", t: "2020 S1", p: 1 },
+            { d: "2025-12-02", t: "2020 S2", p: 1 }, { d: "2025-12-03", t: "2019 S1", p: 1 },
+            { d: "2025-12-04", t: "2019 S2", p: 1 }, { d: "2025-12-05", t: "2018 S1", p: 1 },
+            { d: "2025-12-06", t: "2018 S2", p: 1 }, { d: "2025-12-07", t: "Analysis", p: 1 },
+            { d: "2025-12-08", t: "2017 S1", p: 1 }, { d: "2025-12-09", t: "2017 S2", p: 1 },
+            { d: "2025-12-10", t: "2016 S1", p: 1 }, { d: "2025-12-11", t: "2016 S2", p: 1 },
+            { d: "2025-12-12", t: "2015 S1", p: 1 }, { d: "2025-12-13", t: "2015 S2", p: 1 },
+            { d: "2025-12-14", t: "Review", p: 1 }, { d: "2025-12-15", t: "2014 S1", p: 1 },
+            { d: "2025-12-16", t: "2014 S2", p: 1 }, { d: "2025-12-17", t: "2013", p: 1 },
+            { d: "2025-12-18", t: "2012", p: 1 }, { d: "2025-12-19", t: "2011", p: 1 },
+            { d: "2025-12-20", t: "Grand Revision", p: 1 },
+            // PHASE 2
+            { d: "2025-12-21", t: "SOM + 20 PYQs", p: 2 }, { d: "2025-12-22", t: "Structural Analysis + 20 PYQs", p: 2 },
+            { d: "2025-12-23", t: "RCC + 20 PYQs", p: 2 }, { d: "2025-12-24", t: "Soil Mechanics + 20 PYQs", p: 2 },
+            { d: "2025-12-25", t: "Foundation + 15 PYQs", p: 2 }, { d: "2025-12-26", t: "Fluid Mechanics + 20 PYQs", p: 2 },
+            { d: "2025-12-27", t: "Hydrology + Irrigation", p: 2 }, { d: "2025-12-28", t: "Env – wastewater", p: 2 },
+            { d: "2025-12-29", t: "Env – water treatment", p: 2 }, { d: "2025-12-30", t: "Env – air + noise", p: 2 },
+            { d: "2025-12-31", t: "Transportation", p: 2 }, { d: "2026-01-01", t: "Surveying", p: 2 },
+            { d: "2026-01-02", t: "Engineering Maths", p: 2 }, { d: "2026-01-03", t: "Aptitude", p: 2 },
+            // Reattempts
+            { d: "2026-01-04", t: "Reattempt PYQs (2025-24)", p: 2 }, { d: "2026-01-05", t: "Reattempt PYQs (2023-22)", p: 2 },
+            { d: "2026-01-06", t: "Reattempt PYQs (2021-20)", p: 2 }, { d: "2026-01-07", t: "Reattempt PYQs (2019-18)", p: 2 },
+            { d: "2026-01-08", t: "Reattempt PYQs (2017-16)", p: 2 }, { d: "2026-01-09", t: "Reattempt PYQs (2015-14)", p: 2 },
+            { d: "2026-01-10", t: "Reattempt PYQs (2013-12)", p: 2 }, { d: "2026-01-11", t: "Reattempt PYQs (2011)", p: 2 },
+            { d: "2026-01-12", t: "Reattempt PYQs / Buffer", p: 2 }, { d: "2026-01-13", t: "Reattempt PYQs / Buffer", p: 2 },
+            { d: "2026-01-14", t: "Reattempt PYQs / Buffer", p: 2 }, { d: "2026-01-15", t: "Reattempt PYQs / Buffer", p: 2 },
+            // PHASE 3
+            { d: "2026-01-16", t: "Mock 1", p: 3 }, { d: "2026-01-17", t: "Analysis", p: 3 },
+            { d: "2026-01-18", t: "Mock 2", p: 3 }, { d: "2026-01-19", t: "Analysis", p: 3 },
+            { d: "2026-01-20", t: "Mock 3", p: 3 }, { d: "2026-01-21", t: "Analysis", p: 3 },
+            { d: "2026-01-22", t: "Weak topics", p: 3 }, { d: "2026-01-23", t: "Mock 4", p: 3 },
+            { d: "2026-01-24", t: "Analysis", p: 3 }, { d: "2026-01-25", t: "Mock 5", p: 3 },
+            { d: "2026-01-26", t: "Analysis", p: 3 }, { d: "2026-01-27", t: "Mock 6", p: 3 },
+            { d: "2026-01-28", t: "Analysis", p: 3 }, { d: "2026-01-29", t: "Formula Revision", p: 3 },
+            { d: "2026-01-30", t: "Mock 7", p: 3 }, { d: "2026-01-31", t: "Analysis", p: 3 },
+            { d: "2026-02-01", t: "Mock 8", p: 3 }, { d: "2026-02-02", t: "Analysis", p: 3 },
+            { d: "2026-02-03", t: "Mock 9", p: 3 }, { d: "2026-02-04", t: "Analysis", p: 3 },
+            { d: "2026-02-05", t: "Error-log practice", p: 3 }, { d: "2026-02-06", t: "Mock 10", p: 3 },
+            { d: "2026-02-07", t: "Light analysis", p: 3 }, { d: "2026-02-08", t: "Mock 11", p: 3 },
+            { d: "2026-02-09", t: "Light analysis", p: 3 }, { d: "2026-02-10", t: "Mock 12", p: 3 },
+            { d: "2026-02-11", t: "Light analysis", p: 3 }, { d: "2026-02-12", t: "Formula + NAT revision", p: 3 },
+            { d: "2026-02-13", t: "Light revision day", p: 3 }
+        ];
 
-                tasks.push({ d: dStr, t: t, p: p, done: false, id: index });
-                curr.setDate(curr.getDate() + 1);
-                index++;
-            }
-            return tasks;
+        // --- THEME CONFIGURATION ---
+        const THEMES = {
+            cyberpunk: { id: 'cyberpunk', name: 'Cyberpunk', colors: { '--bg-color': '#050505', '--glass-bg': 'rgba(20, 20, 30, 0.7)', '--glass-border': 'rgba(0, 243, 255, 0.2)', '--primary': '#00f3ff', '--secondary': '#bc13fe' }, bgType: 'grid' },
+            zen: { id: 'zen', name: 'Zen Garden', colors: { '--bg-color': '#0f1c15', '--glass-bg': 'rgba(10, 40, 20, 0.6)', '--glass-border': 'rgba(74, 222, 128, 0.2)', '--primary': '#4ade80', '--secondary': '#22c55e' }, bgType: 'blobs' },
+            royal: { id: 'royal', name: 'Royal Onyx', colors: { '--bg-color': '#000000', '--glass-bg': 'rgba(20, 20, 20, 0.8)', '--glass-border': 'rgba(251, 191, 36, 0.2)', '--primary': '#fbbf24', '--secondary': '#d97706' }, bgType: 'none' }
         };
 
         const Icon = ({ name, size = 20, className = "" }) => {
@@ -156,241 +172,289 @@
             return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
         };
 
-        // --- COMPONENTS ---
+        // =========================================
+        // 📌 COMPONENTS
+        // =========================================
 
-        const LevelBadge = ({ completedCount }) => {
-            let level = "Novice";
-            let color = "text-gray-400";
-            let icon = "sprout";
+        // --- LIVE COUNTDOWN TIMER ---
+        const LiveTimer = () => {
+            const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
 
-            if (completedCount > 5) { level = "Apprentice"; color = "text-blue-400"; icon = "hammer"; }
-            if (completedCount > 20) { level = "Engineer"; color = "text-green-400"; icon = "wrench"; }
-            if (completedCount > 50) { level = "Scholar"; color = "text-purple-400"; icon = "book-open"; }
-            if (completedCount > 80) { level = "GATE Topper"; color = "text-yellow-400"; icon = "crown"; }
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const now = new Date();
+                    const exam = new Date("2026-02-14T09:00:00");
+                    const diff = exam - now;
+
+                    if (diff > 0) {
+                        setTimeLeft({
+                            d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                            h: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                            m: Math.floor((diff / 1000 / 60) % 60),
+                            s: Math.floor((diff / 1000) % 60)
+                        });
+                    }
+                }, 1000);
+                return () => clearInterval(interval);
+            }, []);
 
             return (
-                <div className="flex flex-col items-center animate-pop">
-                    <div className={`w-12 h-12 rounded-full glass-morphism flex items-center justify-center border ${color.replace('text', 'border')} mb-1 shadow-[0_0_15px_rgba(0,0,0,0.5)]`}>
-                        <Icon name={icon} className={color} />
+                <div className="glass-morphism rounded-xl p-3 mb-6 animate-slide-up">
+                    <div className="flex justify-between items-center text-center">
+                        <div className="flex-1"><span className="text-2xl font-bold text-primary">{timeLeft.d}</span><div className="text-[10px] text-gray-400">DAYS</div></div>
+                        <div className="text-gray-600">:</div>
+                        <div className="flex-1"><span className="text-xl font-bold text-white">{timeLeft.h}</span><div className="text-[10px] text-gray-400">HRS</div></div>
+                        <div className="text-gray-600">:</div>
+                        <div className="flex-1"><span className="text-xl font-bold text-white">{timeLeft.m}</span><div className="text-[10px] text-gray-400">MINS</div></div>
+                        <div className="text-gray-600">:</div>
+                        <div className="flex-1"><span className="text-xl font-bold text-secondary w-8 inline-block">{timeLeft.s.toString().padStart(2, '0')}</span><div className="text-[10px] text-gray-400">SECS</div></div>
                     </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${color}`}>{level}</span>
-                    <span className="text-[10px] text-gray-500">XP: {completedCount * 100}</span>
                 </div>
             );
         };
 
-        const TaskCard = ({ task, onToggle }) => {
-            return (
-                <div 
-                    onClick={() => onToggle(task.id)}
-                    className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-300 cursor-pointer border border-white/5 hover:border-white/20 hover:bg-white/5 active:scale-95 ${task.done ? 'opacity-60' : 'glass-morphism'}`}
-                >
-                    <div className="flex items-center gap-4 relative z-10">
-                        <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300 ${task.done ? 'bg-gradient-to-r from-cyan-500 to-purple-600 border-transparent' : 'border-gray-500 group-hover:border-cyan-400'}`}>
-                            {task.done && <Icon name="check" size={14} className="text-white animate-pop" />}
+        // --- TASK CARD ---
+        const TaskCard = ({ task, onToggle }) => (
+            <div onClick={() => onToggle(task.d)} className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-300 cursor-pointer border border-glassBorder hover:bg-white/5 active:scale-95 ${task.done ? 'opacity-60' : 'glass-morphism'}`}>
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${task.done ? 'bg-primary border-primary' : 'border-gray-500 group-hover:border-primary'}`}>
+                        {task.done && <Icon name="check" size={14} className="text-black animate-pop" />}
+                    </div>
+                    <div className="flex-1">
+                        <h4 className={`font-medium text-sm transition-all ${task.done ? 'line-through text-gray-400' : 'text-gray-100 group-hover:text-primary'}`}>{task.t}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-secondary">Phase {task.p}</span>
+                            <span className="text-[10px] text-gray-500">{task.d}</span>
                         </div>
-                        <div className="flex-1">
-                            <h4 className={`font-medium text-sm transition-all ${task.done ? 'line-through text-gray-400' : 'text-gray-100 group-hover:text-cyan-300'}`}>
-                                {task.t}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded ${task.p === 1 ? 'bg-blue-500/20 text-blue-300' : task.p === 2 ? 'bg-purple-500/20 text-purple-300' : 'bg-orange-500/20 text-orange-300'}`}>
-                                    Phase {task.p}
-                                </span>
-                                <span className="text-[10px] text-gray-500">{task.d}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Progress Fill Animation background */}
-                    <div className={`absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500/10 to-purple-600/10 transition-all duration-500 ${task.done ? 'w-full' : 'w-0'}`}></div>
-                </div>
-            );
-        };
-
-        const CircularProgress = ({ percentage }) => {
-            const radius = 40;
-            const circumference = 2 * Math.PI * radius;
-            const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-            return (
-                <div className="relative w-32 h-32 flex items-center justify-center">
-                    <svg className="transform -rotate-90 w-32 h-32">
-                        <circle cx="64" cy="64" r={radius} stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-800" />
-                        <circle 
-                            cx="64" cy="64" r={radius} 
-                            stroke="url(#gradient)" 
-                            strokeWidth="8" 
-                            fill="transparent" 
-                            strokeDasharray={circumference} 
-                            strokeDashoffset={strokeDashoffset} 
-                            strokeLinecap="round"
-                            className="transition-all duration-1000 ease-out"
-                        />
-                        <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#00f3ff" />
-                                <stop offset="100%" stopColor="#bc13fe" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <div className="absolute flex flex-col items-center">
-                        <span className="text-2xl font-bold text-white">{percentage}%</span>
-                        <span className="text-[10px] text-gray-400">DONE</span>
                     </div>
                 </div>
-            );
-        };
+                <div className={`absolute top-0 left-0 h-full bg-primary opacity-10 transition-all duration-500 ${task.done ? 'w-full' : 'w-0'}`}></div>
+            </div>
+        );
 
-        // --- SCREENS ---
+        // --- MONTHLY CALENDAR ---
+        const CalendarWidget = ({ tasks, toggleTask }) => {
+            const [currDate, setCurrDate] = useState(new Date("2025-11-25")); // Default start date
+            const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split('T')[0]);
 
-        const Dashboard = ({ tasks, toggleTask }) => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const todayIndex = tasks.findIndex(t => t.d === todayStr);
-            const todayTask = tasks[todayIndex] !== -1 ? tasks[todayIndex] : tasks[0];
+            // Data Logic
+            const year = currDate.getFullYear();
+            const month = currDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay(); // 0 = Sun
             
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            
+            const days = [];
+            for (let i = 0; i < firstDay; i++) days.push(null);
+            for (let i = 1; i <= daysInMonth; i++) days.push(i);
+
+            const getTaskStatus = (day) => {
+                if (!day) return null;
+                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const task = tasks.find(t => t.d === dStr);
+                const isPast = new Date(dStr) < new Date(new Date().toISOString().split('T')[0]);
+                
+                if (!task) return 'none'; // No task scheduled
+                if (task.done) return 'done'; // Green
+                if (isPast && !task.done) return 'missed'; // Red
+                return 'pending'; // Blue (future)
+            };
+
+            const handleDateClick = (day) => {
+                if (!day) return;
+                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                setSelectedDateStr(dStr);
+            };
+
+            const changeMonth = (offset) => {
+                setCurrDate(new Date(year, month + offset, 1));
+            };
+
+            const selectedTask = tasks.find(t => t.d === selectedDateStr);
+
+            return (
+                <div className="animate-slide-up pb-24 h-full flex flex-col">
+                    <h2 className="text-2xl font-bold mb-4 px-2 text-primary">Calendar</h2>
+                    
+                    {/* Calendar Container */}
+                    <div className="glass-morphism rounded-2xl p-4 mb-4">
+                        {/* Header */}
+                        <div className="flex justify-between items-center mb-4">
+                            <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white/10 rounded-full"><Icon name="chevron-left" size={20}/></button>
+                            <span className="font-bold text-lg">{monthNames[month]} {year}</span>
+                            <button onClick={() => changeMonth(1)} className="p-2 hover:bg-white/10 rounded-full"><Icon name="chevron-right" size={20}/></button>
+                        </div>
+
+                        {/* Days Header */}
+                        <div className="calendar-grid mb-2">
+                            {['S','M','T','W','T','F','S'].map(d => <span key={d} className="text-xs text-gray-500 font-bold">{d}</span>)}
+                        </div>
+
+                        {/* Grid */}
+                        <div className="calendar-grid">
+                            {days.map((day, idx) => {
+                                if (!day) return <div key={idx}></div>;
+                                
+                                const status = getTaskStatus(day);
+                                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                const isSelected = dStr === selectedDateStr;
+
+                                let bgClass = "bg-gray-800/30 text-gray-400"; // Default none
+                                if (status === 'done') bgClass = "bg-green-500 text-black font-bold shadow-[0_0_10px_rgba(34,197,94,0.5)]";
+                                else if (status === 'missed') bgClass = "bg-red-500 text-white font-bold shadow-[0_0_10px_rgba(239,68,68,0.5)]";
+                                else if (status === 'pending') bgClass = "bg-primary/20 text-primary border border-primary/30";
+
+                                return (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => handleDateClick(day)}
+                                        className={`h-9 w-9 rounded-full flex items-center justify-center text-sm transition-all relative ${bgClass} ${isSelected ? 'ring-2 ring-white scale-110 z-10' : ''}`}
+                                    >
+                                        {day}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Legend */}
+                        <div className="flex justify-center gap-4 mt-4 text-[10px] text-gray-400">
+                            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div>Done</div>
+                            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div>Pending</div>
+                            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-primary/50"></div>Future</div>
+                        </div>
+                    </div>
+
+                    {/* Selected Date Detail */}
+                    <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-400 mb-2 px-2 uppercase tracking-wider">
+                            {new Date(selectedDateStr).toDateString()}
+                        </h3>
+                        {selectedTask ? (
+                            <TaskCard task={selectedTask} onToggle={toggleTask} />
+                        ) : (
+                            <div className="glass-morphism p-6 rounded-xl text-center text-gray-500 italic">
+                                No task scheduled for this date.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- DASHBOARD ---
+        const Dashboard = ({ tasks, toggleTask }) => {
             const completed = tasks.filter(t => t.done).length;
-            const percentage = Math.round((completed / tasks.length) * 100);
-            const daysLeft = Math.ceil((new Date("2026-02-14") - new Date()) / (1000 * 60 * 60 * 24));
+            const progress = Math.round((completed / tasks.length) * 100);
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayTask = tasks.find(t => t.d === todayStr) || tasks[0];
 
             return (
                 <div className="space-y-6 pb-24 animate-slide-up">
                     <header className="flex justify-between items-center px-2">
                         <div>
-                            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-300">GATE 2026 Tracker</h1>
-                            <p className="text-xs text-gray-400">{daysLeft} Days to Glory</p>
+                            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">GATE Master</h1>
+                            <p className="text-xs text-gray-400">Target: Feb 14, 2026</p>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 p-[1px]">
-                            <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
-                                <span className="text-xs font-bold">P</span>
-                            </div>
-                        </div>
+                        <div className="w-10 h-10 rounded-full glass-morphism flex items-center justify-center text-primary font-bold">P</div>
                     </header>
+                    
+                    {/* NEW: LIVE TIMER */}
+                    <LiveTimer />
 
-                    {/* Stats Row */}
-                    <div className="flex justify-between items-center glass-morphism rounded-2xl p-6">
-                        <CircularProgress percentage={percentage} />
-                        <div className="flex-1 pl-6 border-l border-white/10 flex flex-col items-center gap-4">
-                            <LevelBadge completedCount={completed} />
+                    <div className="glass-morphism rounded-2xl p-6 flex justify-between items-center">
+                        <div className="relative w-28 h-28 flex items-center justify-center">
+                            <svg className="transform -rotate-90 w-28 h-28">
+                                <circle cx="56" cy="56" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-white/10" />
+                                <circle cx="56" cy="56" r="40" stroke="var(--primary)" strokeWidth="6" fill="transparent" strokeDasharray="251" strokeDashoffset={251 - (progress/100)*251} strokeLinecap="round" className="transition-all duration-1000" />
+                            </svg>
+                            <span className="absolute text-xl font-bold text-white">{progress}%</span>
+                        </div>
+                        <div className="text-center">
+                            <h4 className="text-2xl font-bold text-white">{completed}</h4>
+                            <span className="text-xs text-gray-400 uppercase">Tasks Done</span>
                         </div>
                     </div>
 
-                    {/* Today's Focus */}
                     <div>
-                        <div className="flex items-center justify-between mb-2 px-2">
-                            <h3 className="font-bold text-gray-200">Today's Mission</h3>
-                            <span className="text-xs text-cyan-400 animate-pulse">Live</span>
-                        </div>
+                        <h3 className="font-bold text-gray-200 mb-3 px-1 flex items-center gap-2"><Icon name="zap" size={16} className="text-secondary" /> Today's Focus</h3>
                         <TaskCard task={todayTask} onToggle={toggleTask} />
                     </div>
+                </div>
+            );
+        };
 
-                    {/* Upcoming */}
-                    <div>
-                        <h3 className="font-bold text-gray-200 mb-2 px-2">Next Up</h3>
-                        <div className="space-y-2">
-                            {tasks.slice(todayIndex + 1, todayIndex + 4).map((t, i) => (
-                                <TaskCard key={t.id} task={t} onToggle={toggleTask} />
-                            ))}
+        // --- SETTINGS (Kept Simple) ---
+        const SettingsView = ({ currentTheme, setTheme, resetData }) => (
+            <div className="pb-24 animate-slide-up">
+                <h2 className="text-2xl font-bold mb-6 px-2 text-primary">Theme & Data</h2>
+                <div className="grid grid-cols-2 gap-4 px-1">
+                    {Object.values(THEMES).map(theme => (
+                        <div key={theme.id} onClick={() => setTheme(theme.id)} className={`glass-morphism rounded-xl p-4 cursor-pointer border-2 transition-all ${currentTheme === theme.id ? 'border-primary scale-[1.02]' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                            <div className="h-10 rounded-lg mb-2" style={{ background: `linear-gradient(135deg, ${theme.colors['--primary']}, ${theme.colors['--secondary']})` }}></div>
+                            <h3 className="font-bold text-xs text-center">{theme.name}</h3>
                         </div>
-                    </div>
+                    ))}
                 </div>
-            );
-        };
-
-        const CalendarView = ({ tasks, toggleTask }) => {
-            return (
-                <div className="h-full pb-24 animate-slide-up">
-                    <h2 className="text-2xl font-bold mb-4 px-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Master Plan</h2>
-                    <div className="space-y-2">
-                        {tasks.map((task) => (
-                            <div key={task.id} className="flex gap-3">
-                                <div className="flex flex-col items-center pt-2">
-                                    <div className={`w-2 h-2 rounded-full ${task.done ? 'bg-cyan-400' : 'bg-gray-700'}`}></div>
-                                    <div className="w-[1px] h-full bg-white/5 my-1"></div>
-                                </div>
-                                <div className="flex-1 pb-2">
-                                    <TaskCard task={task} onToggle={toggleTask} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="mt-10 px-2">
+                    <button onClick={resetData} className="w-full py-3 rounded-xl border border-red-500/30 text-red-400 glass-morphism hover:bg-red-500/10 flex items-center justify-center gap-2">
+                        <Icon name="trash-2" size={18} /> Reset All Progress
+                    </button>
                 </div>
-            );
-        };
+            </div>
+        );
 
         // --- MAIN APP ---
-
         const App = () => {
-            const [activeTab, setActiveTab] = useState('home');
+            const [tab, setTab] = useState('home');
             const [tasks, setTasks] = useState([]);
+            const [theme, setTheme] = useState('cyberpunk');
             const [loaded, setLoaded] = useState(false);
 
             useEffect(() => {
-                const saved = localStorage.getItem('gate_pro_tasks');
-                if (saved) {
-                    setTasks(JSON.parse(saved));
-                } else {
-                    setTasks(generateSchedule());
-                }
+                const savedTasks = localStorage.getItem('gate_calendar_tasks');
+                const savedTheme = localStorage.getItem('gate_calendar_theme');
+                if (savedTasks) setTasks(JSON.parse(savedTasks));
+                else setTasks(RAW_SCHEDULE.map(t => ({...t, done: false})));
+                if (savedTheme) setTheme(savedTheme);
                 setLoaded(true);
             }, []);
 
             useEffect(() => {
-                if(loaded) localStorage.setItem('gate_pro_tasks', JSON.stringify(tasks));
-            }, [tasks, loaded]);
-
-            const handleToggle = (id) => {
-                const task = tasks.find(t => t.id === id);
-                const isCompleting = !task.done;
-
-                setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
-
-                // TRIGGER CONFETTI if completing
-                if (isCompleting) {
-                    confetti({
-                        particleCount: 100,
-                        spread: 70,
-                        origin: { y: 0.8 },
-                        colors: ['#00f3ff', '#bc13fe', '#ffffff']
-                    });
+                if (loaded) {
+                    localStorage.setItem('gate_calendar_tasks', JSON.stringify(tasks));
+                    localStorage.setItem('gate_calendar_theme', theme);
                 }
+                const t = THEMES[theme];
+                Object.entries(t.colors).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+            }, [tasks, theme, loaded]);
+
+            const toggleTask = (d) => {
+                setTasks(prev => prev.map(t => {
+                    if (t.d === d) {
+                        if (!t.done) confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 }, colors: [getComputedStyle(document.body).getPropertyValue('--primary')] });
+                        return { ...t, done: !t.done };
+                    }
+                    return t;
+                }));
             };
 
-            if (!loaded) return <div className="flex h-screen items-center justify-center text-cyan-400">Loading Matrix...</div>;
+            const resetData = () => { if(confirm("Reset Everything?")) { localStorage.clear(); window.location.reload(); } };
+
+            if (!loaded) return <div className="h-screen flex items-center justify-center text-primary">Loading...</div>;
 
             return (
                 <div className="max-w-md mx-auto h-screen relative flex flex-col">
-                    {/* Content Area - Scrollable */}
+                    <div className="bg-grid"></div>
                     <div className="flex-1 overflow-y-auto scroll-hidden p-5">
-                        {activeTab === 'home' && <Dashboard tasks={tasks} toggleTask={handleToggle} />}
-                        {activeTab === 'calendar' && <CalendarView tasks={tasks} toggleTask={handleToggle} />}
-                        {activeTab === 'settings' && (
-                            <div className="text-center mt-20 animate-slide-up">
-                                <Icon name="settings" size={48} className="mx-auto text-gray-600 mb-4"/>
-                                <h2 className="text-xl font-bold">Settings Locked</h2>
-                                <button onClick={() => {localStorage.clear(); window.location.reload()}} className="mt-8 px-6 py-3 bg-red-500/20 text-red-400 rounded-xl border border-red-500/50">
-                                    Reset Progress
-                                </button>
-                            </div>
-                        )}
+                        {tab === 'home' && <Dashboard tasks={tasks} toggleTask={toggleTask} />}
+                        {tab === 'calendar' && <CalendarWidget tasks={tasks} toggleTask={toggleTask} />}
+                        {tab === 'settings' && <SettingsView currentTheme={theme} setTheme={setTheme} resetData={resetData} />}
                     </div>
-
-                    {/* Bottom Nav */}
                     <div className="absolute bottom-6 left-6 right-6 h-16 glass-morphism rounded-2xl flex items-center justify-around z-50">
-                        <button onClick={() => setActiveTab('home')} className={`relative transition-all duration-300 ${activeTab === 'home' ? 'text-cyan-400 -translate-y-2' : 'text-gray-500 hover:text-gray-300'}`}>
-                            <div className={`p-2 rounded-xl ${activeTab === 'home' ? 'bg-cyan-500/20 shadow-[0_0_15px_rgba(0,243,255,0.3)]' : ''}`}>
-                                <Icon name="layout-dashboard" />
-                            </div>
-                        </button>
-                        <button onClick={() => setActiveTab('calendar')} className={`relative transition-all duration-300 ${activeTab === 'calendar' ? 'text-purple-400 -translate-y-2' : 'text-gray-500 hover:text-gray-300'}`}>
-                            <div className={`p-2 rounded-xl ${activeTab === 'calendar' ? 'bg-purple-500/20 shadow-[0_0_15px_rgba(188,19,254,0.3)]' : ''}`}>
-                                <Icon name="calendar" />
-                            </div>
-                        </button>
-                        <button onClick={() => setActiveTab('settings')} className={`relative transition-all duration-300 ${activeTab === 'settings' ? 'text-white -translate-y-2' : 'text-gray-500 hover:text-gray-300'}`}>
-                            <div className={`p-2 rounded-xl ${activeTab === 'settings' ? 'bg-white/20' : ''}`}>
-                                <Icon name="user" />
-                            </div>
-                        </button>
+                        <button onClick={() => setTab('home')} className={`p-2 rounded-xl transition-all ${tab === 'home' ? 'bg-primary/20 text-primary scale-110' : 'text-gray-500'}`}><Icon name="layout-dashboard" /></button>
+                        <button onClick={() => setTab('calendar')} className={`p-2 rounded-xl transition-all ${tab === 'calendar' ? 'bg-primary/20 text-primary scale-110' : 'text-gray-500'}`}><Icon name="calendar" /></button>
+                        <button onClick={() => setTab('settings')} className={`p-2 rounded-xl transition-all ${tab === 'settings' ? 'bg-primary/20 text-primary scale-110' : 'text-gray-500'}`}><Icon name="settings" /></button>
                     </div>
                 </div>
             );
